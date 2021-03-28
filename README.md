@@ -11,4 +11,4 @@ Install dependencies
 Within the folder that contains the excel sheet and the python file,
 enter this command in the terminal.
 
-`streamlit run professors_citations_app.py`
+`streamlit run professor_citations_app.py `
