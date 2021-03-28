@@ -1,4 +1,5 @@
-# professorCitationsStreamlitApp
+# Computer Science Department Professors' Citations
+
 ## How to run the application:
 Install dependencies
  * Python 3.8
