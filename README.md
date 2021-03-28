@@ -1,5 +1,5 @@
 # professorCitationsStreamlitApp
-##How to run the application:
+## How to run the application:
 Install dependencies
  * Python 3.8
  * pip
