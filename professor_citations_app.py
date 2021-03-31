@@ -22,7 +22,7 @@ st.markdown("**The graphs are filtered by the sidebar fields.**")
 
 # load data
 path = "Crawled_Faculty_data_3.25.2021.xlsx"
-df = pd.read_excel(path, engine='openpyxl')
+df = pd.read_excel(path)
 
 # cut out old records (* means these are current)
 df = df[df.trim == '*']
@@ -34,6 +34,8 @@ df_limited = df_limited[["first", "last", "university", "citations", "t10", "ran
 # show df
 st.subheader("Data")
 st.write(df_limited)
+
+# --- Univ
 
 # --- CITATION SLIDERS --- 
 # citation sliders
@@ -63,8 +65,6 @@ min_t10_slider = st.sidebar.slider('Adjust the slider to the minimum t10 value',
 # limit the df based on the sliders
 df_limited = df_limited[df_limited.t10 <= max_t10_slider]
 df_limited = df_limited[df_limited.t10 >= min_t10_slider]
-# limit the df based on selected
-df_limited = df_limited[df_limited.t10 >= min_t10_slider]
 
 
 # --- RANK MULTISELECT ---
@@ -83,7 +83,6 @@ elif (rank_radio == "Assistant"):
     df_limited = df_limited[ (df_limited['rank'] == "Assistant") ]
 
 
-# limit the rank to the rank(s) selected
 
 
 # --- DISPLAYING GRAPHS ---
@@ -98,3 +97,24 @@ df_rank_counts = df_limited["rank"].value_counts()
 #df_rank_counts = df_rank_counts.loc[["Full", "Associate", "Assistant"]]
 st.bar_chart(df_rank_counts)
 
+
+# --- BUBBLE CHARTS ---
+import altair as alt
+st.subheader("t10 to citations")
+
+df_t10_citations = df_limited[["t10", "citations"]]
+c = alt.Chart(df_t10_citations).mark_circle().encode(x='t10', y='citations', size='t10', tooltip=['t10', 'citations', 't10'])
+st.altair_chart(c, use_container_width=True)
+
+
+st.subheader("t10 to university")
+df_t10_uni_counts = df_limited[["t10", "university"]]
+
+c = alt.Chart(df_t10_uni_counts).mark_circle().encode(x='t10', y='university', size='t10', color='t10', tooltip=['t10', 'university', 't10'])
+st.altair_chart(c, use_container_width=True)
+
+st.subheader("citations to university")
+df_citation_uni_counts = df_limited[["citations", "university"]]
+
+c = alt.Chart(df_citation_uni_counts).mark_circle().encode(x='citations', y='university', size='citations', color='citations', tooltip=['citations', 'university', 'citations'])
+st.altair_chart(c, use_container_width=True)
