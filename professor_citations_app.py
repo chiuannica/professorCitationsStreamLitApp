@@ -21,8 +21,8 @@ st.markdown("**The graphs are filtered by the sidebar fields.**")
 
 
 # load data
-path = "Crawled_Faculty_data_3.25.2021.xlsx"
-df = pd.read_excel(path)
+path = "Crawled_Faculty_data_3.25.2021.csv"
+df = pd.read_csv(path)
 
 # cut out old records (* means these are current)
 df = df[df.trim == '*']
