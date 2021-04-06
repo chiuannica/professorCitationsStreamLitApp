@@ -16,8 +16,11 @@ st.write('''This dataset includes the professors at computer science programs,
             the number of citations they have, and scraped citation measures 
             from their Google Scholar page.''')
 st.subheader("Things to know to interpret data")
-st.write('''The t10 value refers to the number of citations of the professors' 10th highest cited paper.''')
-st.markdown("**The graphs are filtered by the sidebar fields.**")
+st.markdown('''<ul>
+                <li>The t10 value refers to the number of citations of the professors' 10th highest cited paper</li>
+                <li>The h-index measures a scholars's productivity and citation impact. It is defined as the maximum number of <em>h</em> papers that have been cited <em>h</em> times.</li>
+                <li>The graphs are filtered by the sidebar fields</li>
+            </ul>''', unsafe_allow_html=True)
 
 
 # load data
@@ -29,7 +32,7 @@ df = df[df.trim == '*']
 df_limited = df
 
 # limit the df to some columns
-df_limited = df_limited[["first", "last", "university", "citations", "t10", "rank"]]
+df_limited = df_limited[["first", "last", "university", "citations", "h-index", "t10", "rank"]]
 
 # show df
 st.subheader("Data")
@@ -106,6 +109,11 @@ df_t10_citations = df_limited[["t10", "citations"]]
 c = alt.Chart(df_t10_citations).mark_circle().encode(x='t10', y='citations', size='t10', tooltip=['t10', 'citations', 't10'])
 st.altair_chart(c, use_container_width=True)
 
+st.subheader("t10 to h-index")
+
+df_t10_h = df_limited[["t10", "h-index"]]
+c = alt.Chart(df_t10_h).mark_circle().encode(x='t10', y='h-index', size='t10', tooltip=['t10', 'h-index', 't10'])
+st.altair_chart(c, use_container_width=True)
 
 st.subheader("t10 to university")
 df_t10_uni_counts = df_limited[["t10", "university"]]
@@ -118,3 +126,21 @@ df_citation_uni_counts = df_limited[["citations", "university"]]
 
 c = alt.Chart(df_citation_uni_counts).mark_circle().encode(x='citations', y='university', size='citations', color='citations', tooltip=['citations', 'university', 'citations'])
 st.altair_chart(c, use_container_width=True)
+
+
+
+# st.write('''Correlation between faculty size and US News CS ranking:
+#    1.0000    0.0103
+#    0.0103    1.0000
+#
+#Correlation between US News CS ranking and university ranking:
+#    1.0000    0.6792
+#    0.6792    1.0000
+#
+#Correlation between h-index and t10-index:
+#    1.0000    0.8077
+#    0.8077    1.0000
+#
+#Correlation between logs of h-index and t10-index:
+#    1.0000    0.9488
+#    0.9488    1.0000 ''') 
