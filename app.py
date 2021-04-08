@@ -32,8 +32,11 @@ st.markdown('''<ul>
 # *======================*
 
 # load data
-path = "Crawled_Faculty_data_3.25.2021.csv"
+path = "all_professors_04.07.2021_streamlit.csv"
 df = pd.read_csv(path)
+
+ult_path = "utilities.csv"
+df_unique_unis = pd.read_csv(ult_path)
 
 # cut out old records (* means these are current)
 df = df[df.trim == '*']
@@ -53,6 +56,9 @@ st.write(df_limited)
 # --- CITATION SLIDERS --- 
 # citation sliders
 df_citations = df["citations"]
+
+df["citations"] = pd.to_numeric(df["citations"], downcast="float")
+
 min_citations = int(df_citations.min())
 max_citations = int(df_citations.max())
 
@@ -113,9 +119,9 @@ elif (rank_radio == "Assistant"):
 
 # --- UNIVERSITY MULTISELECT --- 
 st.sidebar.write('**Select Universities**')
-uni_options = df_limited['university']
-uni_multiselect = st.sidebar.multiselect("Select Universities. ", options=["Carnegie Mellon University", "Temple University", "University of Pennsylvania"]);
-#uni_multiselect = st.sidebar.multiselect("Select Universities. ", options=uni_options);
+#uni_multiselect = st.sidebar.multiselect("Select Universities. ", options=df_unique_unis);
+uni_options = ["Temple University", "University of Pennsylvania", "Carnegie Mellon University"]
+uni_multiselect = st.sidebar.multiselect("(Work in Progress). ", options=uni_options);
 # !!!! important, this is broken, lol!
 
 if (uni_multiselect):
