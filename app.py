@@ -1,8 +1,8 @@
 import streamlit as st
-# To make things easier later, we're also importing numpy and pandas for
-# working with sample data.
 import numpy as np
 import pandas as pd
+import altair as alt
+import matplotlib 
 
 # *===========================*
 # *===* Intro Information *===*
@@ -32,18 +32,28 @@ st.markdown('''<ul>
 # *======================*
 
 # load data
-path = "all_professors_04.07.2021_streamlit.csv"
-df = pd.read_csv(path)
 
-ult_path = "utilities.csv"
-df_unique_unis = pd.read_csv(ult_path)
+def load_data():
+    path = "all_professors_04.07.2021_streamlit.csv"
+    df = pd.read_csv(path)
+    # cut out old records (* means these are current)
+    df = df[df.trim == '*']
+    # limit the df to some columns
+    df_limited = df[["first", "last", "university", "citations", "h-index", "t10", "rank"]]
+    return df_limited
 
-# cut out old records (* means these are current)
-df = df[df.trim == '*']
-df_limited = df
+def load_utl_data():
+    # load df
+    ult_path = "utilities.csv"
+    df_unique_unis = pd.read_csv(ult_path)
+    # remove nulls
+    df_unique_unis = df_unique_unis.dropna()
+    return df_unique_unis
 
-# limit the df to some columns
-df_limited = df_limited[["first", "last", "university", "citations", "h-index", "t10", "rank"]]
+df_limited = load_data()
+
+df_unique_unis = load_utl_data()
+
 
 # show df (all of it)
 st.subheader("Raw Full Data")
@@ -55,9 +65,9 @@ st.write(df_limited)
 
 # --- CITATION SLIDERS --- 
 # citation sliders
-df_citations = df["citations"]
+df_citations = df_limited["citations"]
 
-df["citations"] = pd.to_numeric(df["citations"], downcast="float")
+df_limited["citations"] = pd.to_numeric(df_limited["citations"], downcast="float")
 
 min_citations = int(df_citations.min())
 max_citations = int(df_citations.max())
@@ -72,7 +82,7 @@ df_limited = df_limited[df_limited.citations >= min_citation_slider]
 
 # --- t10 SLIDERS ---
 # t10 sliders
-df_t10 = df["t10"]
+df_t10 = df_limited["t10"]
 
 min_t10 = int(df_t10.min())
 max_t10 = int(df_citations.max())
@@ -88,7 +98,7 @@ df_limited = df_limited[df_limited.t10 >= min_t10_slider]
 
 # --- h-index SLIDERS ---
 # h-index  sliders
-df_h = df["h-index"]
+df_h = df_limited["h-index"]
 
 min_h = int(df_h.min())
 max_h = int(df_h.max())
@@ -118,16 +128,15 @@ elif (rank_radio == "Assistant"):
 
 
 # --- UNIVERSITY MULTISELECT --- 
-st.sidebar.write('**Select Universities**')
-#uni_multiselect = st.sidebar.multiselect("Select Universities. ", options=df_unique_unis);
-uni_options = ["Temple University", "University of Pennsylvania", "Carnegie Mellon University"]
-uni_multiselect = st.sidebar.multiselect("(Work in Progress). ", options=uni_options);
-# !!!! important, this is broken, lol!
+# !!! eventually I want to select multiple universities, but doesn't work :(
+# st.sidebar.write('**Select Universities**')
+# uni_options = df_unique_unis
+# uni_select = st.sidebar.selectbox("(Work in Progress). ", options=uni_options);
 
-if (uni_multiselect):
-    df_limited = df_limited.loc[df_limited['university'].str.contains(r'\b(?:{})\b'.format('|'.join(uni_multiselect)))]
-st.subheader("Filtered dataset")
-st.write(df_limited)
+# if (uni_select):
+#     df_limited = df_limited.loc[df_limited['university']==(uni_select)]
+# st.subheader("Filtered dataset")
+# st.write(df_limited)
 
 # *===========================*
 # *===* DISPLAYING GRAPHS *===*
@@ -137,7 +146,13 @@ st.write(df_limited)
 # display bar graph of universities 
 st.subheader("Bar graph of the number of records at each university")
 df_uni_counts = df_limited["university"].value_counts()
-st.bar_chart(df_uni_counts)
+df_uni_counts = df_uni_counts.to_frame()
+
+#FIX!!! 
+#st.bar_chart(df_uni_counts.plot.barh(stacked=True));
+
+st.subheader("Measures for sizes of university")
+st.write(df_uni_counts.describe())
 
 # display bar graph of professor rank 
 st.subheader("Bar graph of the number of professors of each rank")
@@ -147,7 +162,7 @@ st.bar_chart(df_rank_counts)
 
 
 # --- BUBBLE CHARTS ---
-import altair as alt
+
 st.subheader("t10 to citations")
 
 df_t10_citations = df_limited[["t10", "citations"]]
@@ -196,3 +211,5 @@ st.altair_chart(c, use_container_width=True)
 #Correlation between logs of h-index and t10-index:
 #    1.0000    0.9488
 #    0.9488    1.0000 ''') 
+
+
