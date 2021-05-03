@@ -13,9 +13,11 @@ path_2018 = "scholar_ranking_data_USN2018.csv"
 
 def load_rank(path):
     df = pd.read_csv(path)
+    # Full nulls with 0
     df = df.fillna(0)
-    df = df.replace(' ', '')
     df = df.replace(' NaN', 0)
+    # Strip all spaces
+    df = df.replace(' ', '')
     df.set_index("Rank")
     return df
 

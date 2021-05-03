@@ -39,20 +39,28 @@ def load_data():
     # cut out old records (* means these are current)
     df = df[df.trim == '*']
     # limit the df to some columns
-    df_limited = df[["first", "last", "university", "citations", "h-index", "t10", "rank"]]
-    return df_limited
+    df = df[["first", "last", "university", "citations", "h-index", "t10", "rank"]]
+    # strip spaces from rank and university (prevent mismatching)
+    df["university"] = df["university"].str.replace(' ', '')
+    df["rank"] = df["rank"].str.strip()
+    # fill empty spaces
+    df = df.replace('NaN', 0)
+    df = df.fillna(0)
+    return df
 
 def load_utl_data():
     # load df
     ult_path = "utilities.csv"
-    df_unique_unis = pd.read_csv(ult_path)
+    df = pd.read_csv(ult_path)
+    df = df[["university"]]
     # remove nulls
-    df_unique_unis = df_unique_unis.dropna()
-    return df_unique_unis
+    df = df.dropna()
+    # strip all spaces
+    df["university"] = df["university"].replace(' ', '')
+    return df
 
 df_limited = load_data()
 
-df_unique_unis = load_utl_data()
 
 
 # show df (all of it)
@@ -129,28 +137,55 @@ elif (rank_radio == "Assistant"):
 
 # --- UNIVERSITY MULTISELECT --- 
 # !!! eventually I want to select multiple universities, but doesn't work :(
-# st.sidebar.write('**Select Universities**')
-# uni_options = df_unique_unis
-# uni_select = st.sidebar.selectbox("(Work in Progress). ", options=uni_options);
+st.sidebar.write('**Select Universities**')
+# button to click if wants to filter universities
+filter_uni_button = st.sidebar.button("Filter Universities")
+# if click button
+if (filter_uni_button):
+    # get list of universities
+    uni_options = df_limited["university"].value_counts().to_frame().index
+    # select
+    uni_select = st.sidebar.selectbox("(Work in Progress). ", options=uni_options);
 
-# if (uni_select):
-#     df_limited = df_limited.loc[df_limited['university']==(uni_select)]
-# st.subheader("Filtered dataset")
-# st.write(df_limited)
+    # if something is selected, filter 
+    if (uni_select):
+        df_limited = df_limited.loc[df_limited['university']==(uni_select)]
+
+    # remove filter. if click, reload df
+    remove_filter_uni_button = st.sidebar.button("Remove Filter")
+    if (remove_filter_uni_button):
+        df_limited = load_data()
+    
+
+st.subheader("Filtered dataset")
+st.write(df_limited)
 
 # *===========================*
 # *===* DISPLAYING GRAPHS *===*
 # *===========================*
 
-# --- BAR CHARTS ---
 # display bar graph of universities 
-st.subheader("Bar graph of the number of records at each university")
-df_uni_counts = df_limited["university"].value_counts()
-df_uni_counts = df_uni_counts.to_frame()
+st.subheader("Number of records at each university")
 
-#FIX!!! 
-#st.bar_chart(df_uni_counts.plot.barh(stacked=True));
+# --- COUNT FOR EACH UNIVERSITY --- 
+df_uni_counts = df_limited["university"].value_counts().to_frame()
 
+df_uni_counts.rename(columns = {'university' : 'count' }, inplace = True)
+df_uni_counts["university"] = df_uni_counts.index
+
+st.write(df_uni_counts[count])
+
+c = alt.Chart(df_uni_counts).mark_bar().encode(
+    x="count:Q",
+    y="university:N",
+    color="university:N"
+).interactive()
+st.altair_chart(c, use_container_width=True)
+
+
+#st.bar_chart(df_uni_counts)
+
+# measures for university size
 st.subheader("Measures for sizes of university")
 st.write(df_uni_counts.describe())
 
@@ -162,35 +197,68 @@ st.bar_chart(df_rank_counts)
 
 
 # --- BUBBLE CHARTS ---
-
+# --- t10 to citations  bubble chart ---
 st.subheader("t10 to citations")
 
 df_t10_citations = df_limited[["t10", "citations"]]
-c = alt.Chart(df_t10_citations).mark_circle().encode(x='t10', y='citations', size='t10', tooltip=['t10', 'citations', 't10'])
+c = alt.Chart(df_t10_citations).mark_circle().encode(
+    x='t10', 
+    y='citations', 
+    size='t10', 
+    color='t10', 
+    tooltip=['t10', 'citations', 't10'])
 st.altair_chart(c, use_container_width=True)
 
+
+# --- t10 to h-index bubble chart ---
 st.subheader("t10 to h-index")
 
 df_t10_h = df_limited[["t10", "h-index"]]
-c = alt.Chart(df_t10_h).mark_circle().encode(x='t10', y='h-index', size='t10', tooltip=['t10', 'h-index', 't10'])
+c = alt.Chart(df_t10_h).mark_circle().encode(
+    x='t10', 
+    y='h-index', 
+    size='t10', 
+    color='t10', 
+    tooltip=['t10', 'h-index', 't10'])
 st.altair_chart(c, use_container_width=True)
 
 st.subheader("t10 to university")
+
+# --- t10 to universities bubble --- 
 df_t10_uni_counts = df_limited[["t10", "university"]]
 
-c = alt.Chart(df_t10_uni_counts).mark_circle().encode(x='t10', y='university', size='t10', color='t10', tooltip=['t10', 'university', 't10'])
+c = alt.Chart(df_t10_uni_counts).mark_circle().encode(
+    x="t10:Q",
+    y="university:N",
+    size="t10:Q",
+    color="t10:Q",
+    tooltip=['t10', 'university', 't10']
+).interactive()
 st.altair_chart(c, use_container_width=True)
 
 st.subheader("citations to university")
 df_citation_uni_counts = df_limited[["citations", "university"]]
 
-c = alt.Chart(df_citation_uni_counts).mark_circle().encode(x='citations', y='university', size='citations', color='citations', tooltip=['citations', 'university', 'citations'])
+c = alt.Chart(df_citation_uni_counts).mark_circle().encode(
+    x="citations:Q",
+    y="university:N",
+    size="citations:Q",
+    color="citations:Q",
+    tooltip=['citations', 'university', 'citations']
+).interactive()
 st.altair_chart(c, use_container_width=True)
 
 st.subheader("h-index to university")
 df_h_uni_counts = df_limited[["h-index", "university"]]
 
-c = alt.Chart(df_h_uni_counts).mark_circle().encode(x='h-index', y='university', size='h-index', color='h-index', tooltip=['h-index', 'university', 'h-index'])
+c = alt.Chart(df_h_uni_counts).mark_circle().encode(
+    x="h-index:Q",
+    y="university:N",
+    size="h-index:Q",
+    color="h-index:Q",
+    tooltip=['h-index', 'university', 'h-index']
+).interactive()
+
 st.altair_chart(c, use_container_width=True)
 
 
