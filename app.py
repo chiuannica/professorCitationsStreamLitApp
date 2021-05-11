@@ -173,7 +173,7 @@ df_uni_counts = df_limited["university"].value_counts().to_frame()
 df_uni_counts.rename(columns = {'university' : 'count' }, inplace = True)
 df_uni_counts["university"] = df_uni_counts.index
 
-st.write(df_uni_counts[count])
+st.write(df_uni_counts["count"])
 
 c = alt.Chart(df_uni_counts).mark_bar().encode(
     x="count:Q",

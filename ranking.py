@@ -45,6 +45,23 @@ df_2017_trimmed = df_2017[["Rank", "University", "Size", "USN", "Scholar"]]
 
 df_2018_trimmed = df_2018[["Rank", "University", "Size", "USN", "Scholar"]]
 
+# --- SHOW THE SCORES ---
+# Cut to show the USN and Scholar only  
+st.subheader("2017 University Scores")
+st.write(df_2017[["University", "USN", "Scholar"]])
+st.subheader("2018 University Scores")
+st.write(df_2018[["University", "USN", "Scholar"]])
+
+
+c = alt.Chart(df_2017[["University", "USN", "Scholar"]]).mark_bar().encode(
+    alt.X("USN:Q"),
+    alt.X2("Scholar:Q"),
+    alt.Y("University:Q"),
+    color="University:N"
+).interactive()
+st.altair_chart(c, use_container_width=True)
+
+
 
 # --- MERGE 2017 and 2018 ---
 df_2017_2018 = pd.merge(df_2017_trimmed, df_2018_trimmed, on='University', how='inner')
